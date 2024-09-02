@@ -166,3 +166,18 @@ export const getLatestPosts = async () => {
     throw new Error(error as string);
   }
 };
+
+export const searchPosts = async (query: string) => {
+  try {
+    const posts = await databases.listDocuments(databaseId, videoCollectionId, [
+      Query.search("title", query),
+    ]);
+
+    if (!posts) throw new Error("Error getting posts");
+
+    return posts.documents as VideoType[];
+  } catch (error) {
+    console.log(error);
+    throw new Error(error as string);
+  }
+};
