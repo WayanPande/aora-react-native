@@ -17,13 +17,52 @@ export const config = {
   storageId: "66d440d60024fba24d0b",
 };
 
+const {
+  endpoint,
+  platform,
+  projectId,
+  databaseId,
+  userCollectionId,
+  videoCollectionId,
+  storageId,
+} = config;
+
+export interface VideoType {
+  title: string;
+  thumbnail: string;
+  prompt: string;
+  video: string;
+  $id: string;
+  $tenant: string;
+  $createdAt: string;
+  $updatedAt: string;
+  $permissions: any[];
+  creator?: Creator;
+  $databaseId: string;
+  $collectionId: string;
+}
+
+export interface Creator {
+  username: string;
+  email: string;
+  avatar: string;
+  accountId: string;
+  $id: string;
+  $tenant: string;
+  $createdAt: string;
+  $updatedAt: string;
+  $permissions: string[];
+  $databaseId: string;
+  $collectionId: string;
+}
+
 // Init your React Native SDK
 const client = new Client();
 
 client
-  .setEndpoint(config.endpoint) // Your Appwrite Endpoint
-  .setProject(config.projectId) // Your project ID
-  .setPlatform(config.platform); // Your platform
+  .setEndpoint(endpoint) // Your Appwrite Endpoint
+  .setProject(projectId) // Your project ID
+  .setPlatform(platform); // Your platform
 
 const account = new Account(client);
 const avatar = new Avatars(client);
@@ -49,8 +88,8 @@ export const createUser = async (
     await signIn(email, password);
 
     const newUser = await databases.createDocument(
-      config.databaseId,
-      config.userCollectionId,
+      databaseId,
+      userCollectionId,
       ID.unique(),
       {
         username,
@@ -85,14 +124,43 @@ export const getCurrentUser = async () => {
     if (!currentAccount) throw new Error("Error getting account");
 
     const currentUser = await databases.listDocuments(
-      config.databaseId,
-      config.userCollectionId,
+      databaseId,
+      userCollectionId,
       [Query.equal("accountId", currentAccount.$id)]
     );
 
     if (!currentUser) throw new Error("Error getting user");
 
     return currentUser.documents[0];
+  } catch (error) {
+    console.log(error);
+    throw new Error(error as string);
+  }
+};
+
+export const getAllPosts = async () => {
+  try {
+    const posts = await databases.listDocuments(databaseId, videoCollectionId);
+
+    if (!posts) throw new Error("Error getting posts");
+
+    return posts.documents as VideoType[];
+  } catch (error) {
+    console.log(error);
+    throw new Error(error as string);
+  }
+};
+
+export const getLatestPosts = async () => {
+  try {
+    const posts = await databases.listDocuments(databaseId, videoCollectionId, [
+      Query.orderDesc("$createdAt"),
+      Query.limit(7),
+    ]);
+
+    if (!posts) throw new Error("Error getting posts");
+
+    return posts.documents as VideoType[];
   } catch (error) {
     console.log(error);
     throw new Error(error as string);
