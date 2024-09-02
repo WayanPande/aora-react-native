@@ -167,15 +167,40 @@ export const getLatestPosts = async () => {
   }
 };
 
-export const searchPosts = async (query: string) => {
+export const searchPosts = async (query?: string) => {
   try {
     const posts = await databases.listDocuments(databaseId, videoCollectionId, [
-      Query.search("title", query),
+      Query.search("title", query ?? ""),
     ]);
 
     if (!posts) throw new Error("Error getting posts");
 
     return posts.documents as VideoType[];
+  } catch (error) {
+    console.log(error);
+    throw new Error(error as string);
+  }
+};
+
+export const getUserPosts = async (userId: string) => {
+  try {
+    const posts = await databases.listDocuments(databaseId, videoCollectionId, [
+      Query.equal("creator", userId),
+    ]);
+
+    if (!posts) throw new Error("Error getting posts");
+
+    return posts.documents as VideoType[];
+  } catch (error) {
+    console.log(error);
+    throw new Error(error as string);
+  }
+};
+
+export const signOut = async () => {
+  try {
+    const session = await account.deleteSession("current");
+    return session;
   } catch (error) {
     console.log(error);
     throw new Error(error as string);
